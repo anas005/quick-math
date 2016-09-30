@@ -1,0 +1,135 @@
+body {
+  font-family: Consolas, monospace;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 16px;
+}
+
+#dashboard {
+  padding: 80px 15px;
+}
+
+.error {
+  border: 2px solid red;
+}
+
+.border {
+  border: solid 1px silver;
+  padding: 3px;
+}
+
+.tweet {
+  margin-bottom: 20px;
+  padding: 10px;
+}
+
+.profile-pic {
+  border: solid 1px silver;
+  padding: 3px;
+  width: 56px;
+  height: 56px;
+}
+
+.wordwrap {
+  white-space: pre-wrap;       /* css-3 */
+  white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+  white-space: -pre-wrap;      /* Opera 4-6 */
+  white-space: -o-pre-wrap;    /* Opera 7 */
+  word-wrap: break-word;       /* Internet Explorer 5.5+ */
+}
+
+.importantTag {
+  font-weight: 900;
+}
+
+#data {
+  color: blue;
+  padding: 10px;
+}
+
+#screen {
+  text-align: center;
+}
+
+#answer {
+  text-align: center;
+}
+
+#keys {
+  /*
+  margin: auto;
+  width: 50%;
+  */
+  text-align: center;
+}
+
+#keys input[type=button] {
+  padding: 20px;
+}
+
+.answer span, #again span, #start, #login {
+  border: 2px solid blue;
+  border-radius: 25px;
+  padding: 10px;
+  background: mintcream;
+  color: blue;
+  cursor: pointer;
+  text-align: center;
+}
+
+.answer span:hover {
+  background: aqua;
+}
+
+.allAnswers {
+  background : mintcream;
+}
+
+.correctAnswer {
+  background : springgreen !important;
+}
+
+#question {
+  border: 2px solid blue;
+  border-radius: 25px;
+  padding: 10px;
+  background: mintcream;
+  color: blue;
+  cursor: default;
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+    top: 150%;
+    left: 50%;
+    margin-left: -60px;
+}
+
+.tooltiptext::after {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent black transparent;
+}
+
+.tooltipinput:hover + .tooltiptext {
+    visibility: visible;
+}

@@ -1,0 +1,35 @@
+{
+  "name": "quick-math",
+  "version": "0.0.1",
+  "description": "A Multiplayer Math game using nodejs, express and socket.io",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ejs": "~1.0.0",
+    "body-parser": "^1.15.0",
+    "express": "~4.13.4",
+    "socket.io": "~0.9.11"
+  },
+  "engines": {
+    "node": ">=0.8.x"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/anas005/quick-math.git"
+  },
+  "keywords": [
+    "quick",
+    "math",
+    "socket.io",
+    "multiplayer",
+    "express"
+  ],
+  "author": "Anas",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/anas005/quick-math/issues"
+  },
+  "homepage": "https://github.com/anas005/quick-math#readme"
+}

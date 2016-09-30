@@ -1,0 +1,215 @@
+<html>
+  <head>
+    <title>Node Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/public/jquery-1.8.0.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/public/hollywood.js"></script>
+    <link rel="stylesheet" href="/public/bootstrap.css" />
+    <script src="/public/bootstrap.js"></script>
+    <link rel="stylesheet" href="/public/app.css" />
+  </head>
+  <body>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">Node Game</a>
+        </div>
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+
+    <div class="container">
+      <div id="dashboard">
+        <div class="row">
+          <div class="col-md-4 col-sm-4 col-xs-12">
+            <div class="row">
+              <div class="col-md-7 col-xs-7 col-sm-7"><b>Users</b></div>
+              <div class="col-md-1 col-xs-1 col-sm-1"></div>
+              <div class="col-md-4 col-xs-4 col-sm-4"><b>Scores</b></div>
+            </div>
+            <hr>
+            <div id="users">
+              <div class="row"></div>
+            </div>
+            <div id="time"></div>
+          </div>
+          <div class="col-md-8 col-sm-8 col-xs-12" id="gameScreen">
+            <div class="col-xs-12 col-md-12 col-sm-12" id="screen">
+              <span id="question" class="hide"></span>
+              <span id="start">Start Game</span>
+              <span id="wait" class="hide">Please wait...</span>
+            </div>
+            <hr>
+            <div class="col-xs-12 col-md-12  col-sm-12" id="keys" class="hide">
+              <div class="col-xs-3 col-md-3 col-sm-3 answer"><span class="hide"></span></div>
+              <div class="col-xs-3 col-md-3 col-sm-3 answer"><span class="hide"></span></div>
+              <div class="col-xs-3 col-md-3 col-sm-3 answer"><span class="hide"></span></div>
+              <div class="col-xs-3 col-md-3 col-sm-3 answer"><span class="hide"></span></div>
+            </div>
+          </div>
+          <div style='text-align:center' id="winner"><h1></h1></div>
+          <div style='text-align:center;margin: 25px;display:none' id='again'>
+            <span>Play Again</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script>
+
+    var socket = io.connect('/');
+    var clickedAnswer;
+    // on connection to server, ask for user's name with an anonymous callback
+    socket.on('connect', function() {
+      // call the server-side function 'adduser' and send one parameter (value of prompt)
+      socket.emit('adduser', "<%=name%>");
+    });
+
+    // listener, whenever the server emits 'updatechat', this updates the chat body
+    socket.on('updatechat', function (username, data) {
+      $('#conversation').append('<b>'+ username + ':</b> ' + data + "<br/>");
+    });
+
+    // listener, whenever the server emits 'question', this updates the question
+    socket.on('question', function (QandA) {
+      $("#question").text("Fetching question...");
+      $(".answer span").addClass("hide").removeClass("show");
+      if (QandA.previousAnswer) {
+        $("#ans_"+QandA.previousAnswer).addClass("show correctAnswer").removeClass("hide allAnswers");
+      }
+      setTimeout( function() {
+        $('#question').text(QandA.question);
+        $('.answer span').each(function(index) {
+          $(this).attr("id", "ans_" + QandA.answers[index]).text(QandA.answers[index]).addClass("show allAnswers").removeClass("hide correctAnswer");
+        });
+      }, 500)
+    });
+
+    // listener, whenever the server emits 'updateusers', this updates the username list
+    socket.on('updateusers', function(data) {
+      $('#users .row').empty();
+      var sortedUsers = Object.keys(data).sort(function(a, b) {
+        return data[a] > data[b];
+      });
+      $.each(data, function(user) {
+        $('#users .row').append('<div class="col-md-7 col-xs-7 col-sm-7">' + user + '</div><div class="col-md-1 col-sm-1 col-xs-1"></div><div class="col-md-4 col-sm-4 col-xs-4">' + data[user] + '</div>');
+      });
+    });
+
+    // listener, whenever the server emits 'updateScore', this updates the scores
+    socket.on('updateScore', function(data) {
+      $('#users .row').empty();
+      var sortedUsers = Object.keys(data).sort(function(a, b) {
+        return data[a] < data[b];
+      });
+      $.each(sortedUsers, function(key, user) {
+        $('#users .row').append('<div class="col-md-7 col-xs-7 col-sm-7">' + user + '</div><div class="col-md-1 col-sm-1 col-xs-1"></div><div class="col-md-4 col-sm-4 col-xs-4">' + data[user] + '</div>');
+      });
+    });
+
+    // listener, whenever the server emits 'result', this notifies user whether the answer is correct or not
+    socket.on('result', function(data) {
+      if(!data.isCorrect) {
+        clickedAnswer.addClass("hide").removeClass("show");
+        console.log("incorrect answer");
+      }
+      else {
+        console.log("correct answer");
+        //$(".row:last div:last").append('<div><b style="color:green">+10</b></div>')
+        //$(".row:last div:last").slideUp(1000, function(){$(this).remove()})
+      }
+    });
+
+    // listener, whenever the server emits 'sendReady', client emits ready
+    socket.on('sendReady', function(data) {
+      socket.emit('ready', "<%=name%>");
+    });
+
+    // listener, whenever the server emits 'game', this starts/stops the game
+    socket.on('game', function(data) {
+      if(data.action == "start") {
+        $("#question, #answer, #start").addClass("hide").removeClass("show");
+        $("#wait").text("3");
+        var waitInterval = setInterval( function() {
+          var wait = $("#wait").text();
+          $("#wait").text(wait-1);
+        }, 1000);
+        setTimeout(function() {
+          clearInterval(waitInterval);
+          $("#wait").addClass("hide").removeClass("show");
+          $("#question, #answer, #keys").addClass("show").removeClass("hide");
+          $("#answer span").addClass("show").removeClass("hide");
+          var time = 60;
+          $("#time").text("Seconds remaining: 60").addClass("show").removeClass("hide");
+          var remainingTimeInterval = setInterval( function() {
+            $("#time").text("Seconds remaining: " + (--time));
+          }, 1000);
+          setTimeout(function() {
+            clearInterval(remainingTimeInterval);
+          }, 60000);
+        }, 3000);
+      }
+      if(data.action == "stop") {
+        $("#time").addClass("hide").removeClass("show");
+        $("#gameScreen").addClass("hide").removeClass("show");
+        $("#winner").addClass("show").removeClass("hide");
+        $("#winner h1").text(data.winner + " won!!!");
+        $("#again").addClass("show").removeClass("hide");
+      }
+    });
+
+    socket.on('servernotification', function (data) {
+      if(data.connected) {
+        if(data.to_self) data.username = "you";
+        $('#users').append('<div style="color:green;font-weight:bold">connected: ' + data.username +'</div>');
+        $('#users div:last').addClass("hide").removeClass("show").slideDown(1000, function() {
+          $(this).slideUp(1000, function() {
+            $(this).remove();
+          });
+        });
+      } else {
+        $('#users').append('<div style="color:red;font-weight:bold">disconnected: ' + data.username +'</div>');
+        $('#users div:last').addClass("hide").removeClass("show").slideDown(1000, function() {
+          $(this).slideUp(1000, function() {
+            $(this).remove();
+          });
+        });
+      }
+    });
+
+    // on load of page
+    $(function() {
+      $("#question, #wait, #keys, .answer span, #winner").addClass("hide").removeClass("show");
+      $("#start").click(function() {
+        socket.emit('ready', "<%=name%>");
+        $(this).addClass("hide").removeClass("show");
+        $("#wait").addClass("show").removeClass("hide");
+      });
+      $("#answer").keypress(function(e) {
+        if(e.which == 13) $("table input:last").click();
+      });
+      $(".answer span").click(function() {
+        clickedAnswer = $(this);
+        var answer = clickedAnswer.text();
+        socket.emit('sendAnswer', answer);
+      });
+      $("#again span").click(function() {
+        $("#again").addClass("hide").removeClass("show");
+        $("#winner").removeClass("show").addClass("hide");
+        $("#gameScreen").removeClass("hide").addClass("show");
+        $("#wait").text("Please wait...").removeClass("hide").addClass("show");
+        $("#question, #keys, .answer span, #winner").addClass("hide").removeClass("show");
+        socket.emit('playAgain', "<%=name%>");
+      });
+    });
+  </script>
+</html>
